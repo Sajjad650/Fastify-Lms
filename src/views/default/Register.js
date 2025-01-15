@@ -1,24 +1,70 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useHistory } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import LayoutFullpage from 'layout/LayoutFullpage';
 import CsLineIcons from 'cs-line-icons/CsLineIcons';
 import HtmlHead from 'components/html-head/HtmlHead';
+import { toast, Bounce } from 'react-toastify';
+import { post } from '../../api/axios';
+import endpoints from '../../api/endpoints';
 
 const Register = () => {
   const title = 'Register';
   const description = 'Register Page';
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const validationSchema = Yup.object().shape({
-    name: Yup.string().required('Name is required'),
+    firstName: Yup.string().required('First Name is required'),
+    lastName: Yup.string().required('Last Name is required'),
     email: Yup.string().email().required('Email is required'),
-    password: Yup.string().min(6, 'Must be at least 6 chars!').required('Password is required'),
+    password: Yup.string().min(5, 'Must be at least 6 chars!').required('Password is required'),
+    userRole: Yup.string().required('User Role is required'),
     terms: Yup.bool().required().oneOf([true], 'Terms must be accepted'),
   });
-  const initialValues = { name: '', email: '', password: '', terms: false };
-  const onSubmit = (values) => console.log('submit form', values);
+
+  const initialValues = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    userRole: 'admin', // Default value for userRole
+  };
+  const navigate = useHistory();
+  const onSubmit = async (values) => {
+    setIsSubmitting(true);
+    setApiError(null);
+    setSuccessMessage(null);
+
+    try {
+      // Send all form values to the backend
+      const response = await post(endpoints.register, {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        password: values.password,
+        userRole: values.userRole,
+      });
+
+      if (response?.data?.success) {
+        toast.success('Register Successfully', {
+          theme: 'colored',
+          transition: Bounce,
+          position: 'bottom-cenetr',
+        });
+        navigate('/login');
+      } else {
+        setApiError('Registration failed. Please try again.');
+      }
+    } catch (error) {
+      setApiError('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const formik = useFormik({ initialValues, validationSchema, onSubmit });
   const { handleSubmit, handleChange, values, touched, errors } = formik;
@@ -67,12 +113,17 @@ const Register = () => {
           <form id="registerForm" className="tooltip-end-bottom" onSubmit={handleSubmit}>
             <div className="mb-3 filled form-group tooltip-end-top">
               <CsLineIcons icon="user" />
-              <Form.Control type="text" name="name" placeholder="Name" value={values.name} onChange={handleChange} />
-              {errors.name && touched.name && <div className="d-block invalid-tooltip">{errors.name}</div>}
+              <Form.Control type="text" name="firstName" placeholder="First Name" value={values.firstName} onChange={handleChange} />
+              {errors.firstName && touched.firstName && <div className="d-block invalid-tooltip">{errors.firstName}</div>}
+            </div>
+            <div className="mb-3 filled form-group tooltip-end-top">
+              <CsLineIcons icon="user" />
+              <Form.Control type="text" name="lastName" placeholder="Last Name" value={values.lastName} onChange={handleChange} />
+              {errors.lastName && touched.lastName && <div className="d-block invalid-tooltip">{errors.lastName}</div>}
             </div>
             <div className="mb-3 filled form-group tooltip-end-top">
               <CsLineIcons icon="email" />
-              <Form.Control type="text" name="email" placeholder="Email" value={values.email} onChange={handleChange} />
+              <Form.Control type="email" name="email" placeholder="Email" value={values.email} onChange={handleChange} />
               {errors.email && touched.email && <div className="d-block invalid-tooltip">{errors.email}</div>}
             </div>
             <div className="mb-3 filled form-group tooltip-end-top">
@@ -80,6 +131,7 @@ const Register = () => {
               <Form.Control type="password" name="password" onChange={handleChange} value={values.password} placeholder="Password" />
               {errors.password && touched.password && <div className="d-block invalid-tooltip">{errors.password}</div>}
             </div>
+
             <div className="mb-3 position-relative form-group">
               <div className="form-check">
                 <input type="checkbox" className="form-check-input" name="terms" onChange={handleChange} value={values.terms} />
@@ -92,10 +144,12 @@ const Register = () => {
                 {errors.terms && touched.terms && <div className="d-block invalid-tooltip">{errors.terms}</div>}
               </div>
             </div>
-            <Button size="lg" type="submit">
-              Signup
+            <Button size="lg" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Registering...' : 'Signup'}
             </Button>
           </form>
+          {successMessage && <p className="text-success">{successMessage}</p>}
+          {apiError && <p className="text-danger">{apiError}</p>}
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ const Login = lazy(() => import('views/default/Login'));
 const ForgotPassword = lazy(() => import('views/default/ForgotPassword'));
 const Register = lazy(() => import('views/default/Register'));
 const ResetPassword = lazy(() => import('views/default/ResetPassword'));
+const Otp = lazy(() => import('views/default/Otp'));
 const Unauthorized = lazy(() => import('views/default/Unauthorized'));
 const InvalidAccess = lazy(() => import('views/default/InvalidAccess'));
 const App = lazy(() => import('App.js'));
@@ -23,6 +24,7 @@ const defaultRoutes = [
   { path: DEFAULT_PATHS.LOGIN, exact: true, component: Login },
   { path: DEFAULT_PATHS.REGISTER, exact: true, component: Register },
   { path: DEFAULT_PATHS.FORGOT_PASSWORD, exact: true, component: ForgotPassword },
+  { path: DEFAULT_PATHS.OTP, exact: true, component: Otp },
   { path: DEFAULT_PATHS.RESET_PASSWORD, exact: true, component: ResetPassword },
   { path: DEFAULT_PATHS.UNAUTHORIZED, exact: true, component: Unauthorized },
   { path: DEFAULT_PATHS.INVALID_ACCESS, exact: true, component: InvalidAccess },

@@ -19,7 +19,7 @@ const Login = () => {
 
   const validationSchema = Yup.object().shape({
     email: Yup.string().email().required('Email is required'),
-    password: Yup.string().min(6, 'Must be at least 6 chars!').required('Password is required'),
+    password: Yup.string().min(5, 'Must be at least 6 chars!').required('Password is required'),
   });
   const history = useHistory();
   const initialValues = { email: '', password: '' };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
 import * as Yup from 'yup';
@@ -6,21 +6,52 @@ import { useFormik } from 'formik';
 import LayoutFullpage from 'layout/LayoutFullpage';
 import CsLineIcons from 'cs-line-icons/CsLineIcons';
 import HtmlHead from 'components/html-head/HtmlHead';
+import { post } from '../../api/axios';
+import endpoints from '../../api/endpoints';
 
 const ResetPassword = () => {
   const title = 'Reset Password';
   const description = 'Reset Password Page';
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
   const validationSchema = Yup.object().shape({
-    password: Yup.string().min(6, 'Must be at least 6 chars!').required('Password is required'),
+    otp: Yup.string().length(6, 'OTP must be exactly 6 digits').required('OTP is required'),
+    password: Yup.string().min(5, 'Must be at least 6 chars!').required('Password is required'),
     passwordConfirm: Yup.string()
       .required('Password Confirm is required')
-      .oneOf([Yup.ref('password'), null], 'Must be same with password!'),
+      .oneOf([Yup.ref('password'), null], 'Must be the same as password!'),
   });
-  const initialValues = { password: '', passwordConfirm: '' };
-  const onSubmit = (values) => console.log('submit form', values);
+
+  const initialValues = { otp: '', password: '', passwordConfirm: '' };
+
+  const onSubmit = async (values) => {
+    setIsSubmitting(true);
+    setApiError(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await post(endpoints.updatePassword, { token: values.otp, password: values.password });
+      console.log('API is hitting...', values.otp);
+      if (response?.data?.success) {
+        setSuccessMessage('Password reset successfully! You can now login.');
+        setTimeout(() => {
+          window.location.href = '/login'; // Redirect to login page after success
+        }, 1500);
+      } else {
+        setApiError('Password reset failed. Please try again.');
+      }
+    } catch (error) {
+      setApiError('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const formik = useFormik({ initialValues, validationSchema, onSubmit });
   const { handleSubmit, handleChange, values, touched, errors } = formik;
+
   const leftSide = (
     <div className="min-h-100 d-flex align-items-center">
       <div className="w-100 w-lg-75 w-xxl-50">
@@ -56,27 +87,41 @@ const ResetPassword = () => {
           <h2 className="cta-1 text-primary">Renew it here!</h2>
         </div>
         <div className="mb-5">
-          <p className="h6">Please use below form to reset your password.</p>
+          <p className="h6">Please use the form below to reset your password.</p>
           <p className="h6">
             If you are a member, please <NavLink to="/login">login</NavLink>.
           </p>
         </div>
         <div>
           <form id="resetForm" className="tooltip-end-bottom" onSubmit={handleSubmit}>
+            {/* OTP Input */}
+            <div className="mb-3 filled">
+              <CsLineIcons icon="key" />
+              <Form.Control type="text" name="otp" maxLength="6" onChange={handleChange} value={values.otp} placeholder="Enter OTP" />
+              {errors.otp && touched.otp && <div className="d-block invalid-tooltip">{errors.otp}</div>}
+            </div>
+
+            {/* Password Input */}
             <div className="mb-3 filled">
               <CsLineIcons icon="lock-off" />
               <Form.Control type="password" name="password" onChange={handleChange} value={values.password} placeholder="Password" />
               {errors.password && touched.password && <div className="d-block invalid-tooltip">{errors.password}</div>}
             </div>
+
+            {/* Confirm Password Input */}
             <div className="mb-3 filled">
               <CsLineIcons icon="lock-on" />
               <Form.Control type="password" name="passwordConfirm" onChange={handleChange} value={values.passwordConfirm} placeholder="Verify Password" />
               {errors.passwordConfirm && touched.passwordConfirm && <div className="d-block invalid-tooltip">{errors.passwordConfirm}</div>}
             </div>
-            <Button size="lg" type="submit">
-              Reset Password
+
+            {/* Submit Button */}
+            <Button size="lg" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Resetting...' : 'Reset Password'}
             </Button>
           </form>
+          {successMessage && <p className="text-success">{successMessage}</p>}
+          {apiError && <p className="text-danger">{apiError}</p>}
         </div>
       </div>
     </div>

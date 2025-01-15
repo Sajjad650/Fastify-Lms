@@ -268,7 +268,7 @@ const InstructorList = () => {
             </Card.Body>
           </Card>
         </Col>
-        <Col>
+        {/* <Col>
           <Card className="h-100">
             <Card.Body className="text-center">
               <div className="sw-13 position-relative mb-3 mx-auto">
@@ -987,7 +987,7 @@ const InstructorList = () => {
               </div>
             </Card.Body>
           </Card>
-        </Col>
+        </Col> */}
       </Row>
       <Row>
         <Col xs="12" className="text-center mt-5">

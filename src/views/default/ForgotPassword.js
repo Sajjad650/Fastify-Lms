@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useHistory } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
 import * as Yup from 'yup';
 import { useFormik } from 'formik';
 import LayoutFullpage from 'layout/LayoutFullpage';
 import CsLineIcons from 'cs-line-icons/CsLineIcons';
 import HtmlHead from 'components/html-head/HtmlHead';
-import { post } from '../../api/axios'; // Import your custom axios wrapper
-import endpoints from '../../api/endpoints'; // Endpoint containing reset URL
+import { Bounce, toast } from 'react-toastify';
+import { post } from '../../api/axios';
+import endpoints from '../../api/endpoints';
 
 const ForgotPassword = () => {
   const title = 'Forgot Password';
@@ -21,18 +22,24 @@ const ForgotPassword = () => {
   });
 
   const initialValues = { email: '' };
+  const history = useHistory();
 
   const onSubmit = async (values) => {
-    console.log('Form submitted with values:', values); // Ensure this is logged
+    console.log('Form submitted with values:', values);
     setIsSubmitting(true);
     setApiError(null);
     setSuccessMessage(null);
 
     try {
       const response = await post(endpoints.reset, { email: values.email });
-      console.log('API response:', response); // Log API response
+      console.log('API response:', response);
       if (response?.data?.success) {
-        setSuccessMessage('A reset email has been sent to your email address.');
+        history.push('/reset-password');
+        toast.success('A reset email has been sent to your email address.', {
+          theme: 'colored',
+          transition: Bounce,
+          position: 'bottom-center',
+        });
       } else {
         setApiError('Failed to send reset email. Please try again.');
       }
